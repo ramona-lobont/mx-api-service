@@ -13,6 +13,7 @@ import { TransactionFilter } from "src/endpoints/transactions/entities/transacti
 import { TokenAssets } from "../assets/entities/token.assets";
 import { QueryPagination } from "../entities/query.pagination";
 import { Account, AccountHistory, AccountTokenHistory, Block, Collection, MiniBlock, Operation, Round, ScDeploy, ScResult, Tag, Token, TokenAccount, Transaction, TransactionLog, TransactionReceipt } from "./entities";
+import { ProviderDelegators } from "./entities/provider.delegators";
 
 export interface IndexerInterface {
   getAccountsCount(filter: AccountFilter): Promise<number>
@@ -154,4 +155,8 @@ export interface IndexerInterface {
   setMetadataForToken(identifier: string, value: any): Promise<void>
 
   setExtraCollectionFields(identifier: string, isVerified: boolean, holderCount: number, nftCount: number): Promise<void>
+
+  getProviderDelegators(pagination: QueryPagination, address: string): Promise<ProviderDelegators[]>
+
+  getProviderDelegatorsCount(address: string): Promise<number>
 }

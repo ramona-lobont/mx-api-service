@@ -18,6 +18,7 @@ import { Collection, ScResult, Account, MiniBlock, Tag, TokenType } from "../ent
 import { IndexerInterface } from "../indexer.interface";
 import { AccountDb, AccountsEsdtDb, BlockDb, LogDb, MiniBlockDb, ReceiptDb, RoundInfoDb, ScDeployInfoDb, ScResultDb, TagDb, TokenInfoDb, TransactionDb, ValidatorPublicKeysDb } from "./entities";
 import { PostgresIndexerHelper } from "./postgres.indexer.helper";
+import { ProviderDelegators } from "../entities/provider.delegators";
 
 @Injectable()
 export class PostgresIndexerService implements IndexerInterface {
@@ -637,5 +638,13 @@ export class PostgresIndexerService implements IndexerInterface {
 
   async setExtraCollectionFields(_identifier: string, _isVerified: boolean, _holderCount: number, _nftCount: number): Promise<void> {
     // TODO custom columns cannot be added
+  }
+
+  getProviderDelegators(_pagination: QueryPagination, _address: string): Promise<ProviderDelegators[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  getProviderDelegatorsCount(_address: string): Promise<number> {
+    throw new Error("Method not implemented.");
   }
 }

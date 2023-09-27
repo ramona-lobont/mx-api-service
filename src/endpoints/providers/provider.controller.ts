@@ -1,11 +1,12 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Query, Res } from "@nestjs/common";
-import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Controller, DefaultValuePipe, Get, HttpException, HttpStatus, Param, ParseIntPipe, Query, Res } from "@nestjs/common";
+import { ApiExcludeEndpoint, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ProviderService } from "./provider.service";
 import { Provider } from "./entities/provider";
 import { ParseAddressArrayPipe, ParseAddressPipe, ParseBoolPipe } from "@multiversx/sdk-nestjs-common";
 import { ProviderFilter } from "./entities/provider.filter";
 import { Response } from "express";
 import { ProviderQueryOptions } from "./entities/provider.query.options";
+import { ProviderDelegator } from "./entities/provider.delegator";
 
 @Controller()
 @ApiTags('providers')
@@ -58,5 +59,40 @@ export class ProviderController {
       throw new HttpException('Provider avatar not found', HttpStatus.NOT_FOUND);
     }
     response.redirect(url);
+  }
+
+  @Get('/providers/:address/delegators')
+  @ApiOperation({ summary: 'Provider', description: 'Returns a list of delegators for a given provider address' })
+  @ApiOkResponse({ type: Provider })
+  @ApiNotFoundResponse({ description: 'Provider not found' })
+  async getProviderDelegators(
+    @Param('address', ParseAddressPipe) address: string,
+    @Query('from', new DefaultValuePipe(0), ParseIntPipe) from: number,
+    @Query("size", new DefaultValuePipe(25), ParseIntPipe) size: number
+  ): Promise<ProviderDelegator[]> {
+    const provider = await this.providerService.getProviderDelegators({ size, from }, address);
+    if (provider === undefined) {
+      throw new HttpException(`Provider '${address}' not found`, HttpStatus.NOT_FOUND);
+    }
+
+    return provider;
+  }
+
+  @Get('/providers/:address/delegators/count')
+  @ApiOperation({ summary: 'Provider', description: 'Returns delegators count for a given provider address' })
+  @ApiOkResponse({ type: Provider })
+  @ApiNotFoundResponse({ description: 'Provider not found' })
+  async getProviderDelegatorsCount(
+    @Param('address', ParseAddressPipe) address: string,
+  ): Promise<number> {
+    return await this.providerService.getProviderDelegatorsCount(address);
+  }
+
+  @Get('/providers/:address/delegators/c')
+  @ApiExcludeEndpoint()
+  async getProviderDelegatorsCountAlternative(
+    @Param('address', ParseAddressPipe) address: string,
+  ): Promise<number> {
+    return await this.providerService.getProviderDelegatorsCount(address);
   }
 }

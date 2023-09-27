@@ -143,6 +143,22 @@ export class ElasticIndexerService implements IndexerInterface {
     return await this.elasticService.getList("accountsesdt", identifier, elasticQuery);
   }
 
+  async getProviderDelegators(pagination: QueryPagination, address: string): Promise<any[]> {
+    const elasticQuery: ElasticQuery = ElasticQuery.create()
+      .withPagination(pagination)
+      .withSort([{ name: "activeStake", order: ElasticSortOrder.descending }])
+      .withCondition(QueryConditionOptions.must, [QueryType.Match("contract", address)]);
+
+    return await this.elasticService.getList("delegators", address, elasticQuery);
+  }
+
+  async getProviderDelegatorsCount(address: string): Promise<number> {
+    const elasticQuery: ElasticQuery = ElasticQuery.create()
+      .withCondition(QueryConditionOptions.must, [QueryType.Match("contract", address)]);
+
+    return await this.elasticService.getCount("delegators", elasticQuery);
+  }
+
   async getTokensWithRolesForAddressCount(address: string, filter: TokenWithRolesFilter): Promise<number> {
     const elasticQuery = this.indexerHelper.buildTokensWithRolesForAddressQuery(address, filter);
     return await this.elasticService.getCount('tokens', elasticQuery);

@@ -9,11 +9,14 @@ import { CacheInfo } from "src/utils/cache.info";
 import { ProviderFilter } from "./entities/provider.filter";
 import { Provider } from "./entities/provider";
 import { AddressUtils, BinaryUtils, Constants } from "@multiversx/sdk-nestjs-common";
-import { ApiService } from "@multiversx/sdk-nestjs-http";
+import { ApiService, ApiUtils } from "@multiversx/sdk-nestjs-http";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { IdentitiesService } from "../identities/identities.service";
 import { ProviderQueryOptions } from "./entities/provider.query.options";
+import { QueryPagination } from "src/common/entities/query.pagination";
+import { IndexerService } from "src/common/indexer/indexer.service";
+import { ProviderDelegator } from "./entities/provider.delegator";
 
 @Injectable()
 export class ProviderService {
@@ -27,7 +30,8 @@ export class ProviderService {
     private readonly nodeService: NodeService,
     private readonly apiService: ApiService,
     @Inject(forwardRef(() => IdentitiesService))
-    private readonly identitiesService: IdentitiesService
+    private readonly identitiesService: IdentitiesService,
+    private readonly indexerService: IndexerService,
   ) { }
 
   async getProvider(address: string): Promise<Provider | undefined> {
@@ -50,6 +54,7 @@ export class ProviderService {
 
       return modifiedProvider;
     }
+
     return provider;
   }
 
@@ -477,6 +482,25 @@ export class ProviderService {
   async isProvider(address: string): Promise<boolean> {
     const provider = await this.getProvider(address);
     return !!provider;
+  }
+
+  async getProviderDelegators(pagination: QueryPagination, address: string): Promise<ProviderDelegator[]> {
+    const delegators = await this.indexerService.getProviderDelegators(pagination, address);
+
+    if (!delegators) {
+      return [];
+    }
+
+    const results = delegators.map(item => ApiUtils.mergeObjects(new ProviderDelegator(), {
+      address: item.address,
+      stake: item.activeStake,
+    }));
+
+    return results;
+  }
+
+  async getProviderDelegatorsCount(address: string): Promise<number> {
+    return await this.indexerService.getProviderDelegatorsCount(address);
   }
 
   private async getProviderIdentity(address: string): Promise<string | undefined> {
